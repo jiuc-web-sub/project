@@ -13,6 +13,8 @@ export default function Login() {
       const res = await login(username, password);
       if (res.data.code === 0) {
         localStorage.setItem('token', res.data.data.token);
+        // 假设后端返回了用户信息
+        localStorage.setItem('user', JSON.stringify({ username }));
         navigate('/');
       } else {
         alert(res.data.msg || '登录失败');
@@ -26,21 +28,17 @@ export default function Login() {
     <div>
       <h1>登录</h1>
       <form onSubmit={handleLogin}>
-        <div>
-          <input
-            placeholder="用户名"
-            value={username}
-            onChange={e => setUsername(e.target.value)}
-          />
-        </div>
-        <div>
-          <input
-            type="password"
-            placeholder="密码"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-          />
-        </div>
+        <input
+          placeholder="用户名"
+          value={username}
+          onChange={e => setUsername(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="密码"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+        />
         <button type="submit">登录</button>
       </form>
       <button onClick={() => navigate('/register')} style={{ marginTop: 8 }}>没有账号？去注册</button>

@@ -15,12 +15,16 @@ export default function Tasks() {
   const [newTask, setNewTask] = useState('');
   const [newDueDate, setNewDueDate] = useState('');
   const [newDesc, setNewDesc] = useState('');
+  const [showDueDate, setShowDueDate] = useState(false);
 
   useEffect(() => {
     fetchTasks().then(res => {
       if (res.data.code === 0) setTasks(res.data.data);
     });
   }, []);
+
+  // 展开/收起描述
+  const [expandedIds, setExpandedIds] = useState([]);
 
   const handleAddTask = async () => {
     if (!newTask.trim() || !newDueDate) return;
@@ -30,6 +34,7 @@ export default function Tasks() {
       setNewTask('');
       setNewDueDate('');
       setNewDesc('');
+      setShowDueDate(false);
     } else {
       alert(res.data.msg || '添加失败');
     }
@@ -54,31 +59,25 @@ export default function Tasks() {
     }
   };
 
+  const handleToggleExpand = (id) => {
+    setExpandedIds(expandedIds.includes(id)
+      ? expandedIds.filter(eid => eid !== id)
+      : [...expandedIds, id]);
+  };
+
+  const handleDescChange = async (id, value) => {
+    const task = tasks.find(t => t.id === id);
+    const res = await updateTask(id, { ...task, description: value });
+    if (res.data.code === 0) {
+      setTasks(tasks.map(t => t.id === id ? { ...t, description: value } : t));
+    } else {
+      alert(res.data.msg || '修改失败');
+    }
+  };
+
   return (
     <div>
       <h1>任务列表</h1>
-      <div className="task-list">
-        {tasks.map(task => (
-          <div key={task.id} className={`task-card ${getTaskColorClass(task.dueDate)}`}>
-            <div>
-              <strong>{task.title}</strong>
-              <button className="delete-btn" onClick={() => handleDeleteTask(task.id)} style={{ float: 'right' }}>删除</button>
-            </div>
-            <div>
-              截止：
-              <input
-                type="date"
-                value={task.dueDate}
-                onChange={e => handleUpdateDueDate(task.id, e.target.value)}
-                style={{ marginLeft: 4 }}
-              />
-            </div>
-            <div>
-              {task.description}
-            </div>
-          </div>
-        ))}
-      </div>
       <div className="task-add">
         <input
           value={newTask}
@@ -88,7 +87,10 @@ export default function Tasks() {
         <input
           type="date"
           value={newDueDate}
-          onChange={e => setNewDueDate(e.target.value)}
+          onChange={e => {
+            setNewDueDate(e.target.value);
+            setShowDueDate(!!e.target.value);
+          }}
           style={{ marginLeft: 8 }}
         />
         <input
@@ -98,6 +100,47 @@ export default function Tasks() {
           style={{ marginLeft: 8, width: 160 }}
         />
         <button onClick={handleAddTask} style={{ marginLeft: 8 }}>添加任务</button>
+      </div>
+      {showDueDate && newDueDate && (
+        <div style={{ margin: '8px 0', color: '#888' }}>
+          截止时间：{newDueDate}
+        </div>
+      )}
+      <div className="task-list">
+        {tasks.map(task => (
+          <div key={task.id} className={`task-card ${getTaskColorClass(task.dueDate)}`}>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <strong>{task.title}</strong>
+              <button
+                style={{ marginLeft: 'auto', marginRight: 8 }}
+                onClick={() => handleToggleExpand(task.id)}
+              >
+                {expandedIds.includes(task.id) ? '收起' : '展开'}
+              </button>
+              <button className="delete-btn" onClick={() => handleDeleteTask(task.id)}>删除</button>
+            </div>
+            <div style={{ marginTop: 8 }}>
+              截止时间：
+              <input
+                type="date"
+                value={task.dueDate}
+                onChange={e => handleUpdateDueDate(task.id, e.target.value)}
+                style={{ marginLeft: 4 }}
+              />
+            </div>
+            {expandedIds.includes(task.id) && (
+              <div style={{ marginTop: 8 }}>
+                <textarea
+                  value={task.description || ''}
+                  onChange={e => handleDescChange(task.id, e.target.value)}
+                  rows={3}
+                  style={{ width: '100%' }}
+                  placeholder="任务详细描述"
+                />
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );

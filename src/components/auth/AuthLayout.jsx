@@ -1,14 +1,23 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import UserProfileModal from '../settings/UserProfileModal';
 
 export default function AuthLayout() {
-  const [user, setUser] = useState({ username: '测试用户', nickname: '测试用户', signature: '这个人很懒', });
+  const [user, setUser] = useState(() => {
+    const u = localStorage.getItem('user');
+    return u ? JSON.parse(u) : null;
+  });
   const [showProfile, setShowProfile] = useState(false);
   const navigate = useNavigate();
 
+  // 只要 user 变化就同步到 localStorage
+  useEffect(() => {
+    if (user) localStorage.setItem('user', JSON.stringify(user));
+  }, [user]);
+
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setUser(null);
     navigate('/login');
   };
@@ -24,10 +33,17 @@ export default function AuthLayout() {
         <div className="nav-user">
           {user ? (
             <>
+              <span style={{ marginRight: 8 }}>
+                欢迎，{user.nickname || user.username}！
+              </span>
               <button onClick={() => setShowProfile(true)} style={{ marginRight: 8 }}>用户设置</button>
-              欢迎，{user.nickname || user.username}！
-              <button onClick={handleLogout} style={{ marginLeft: 8 }}>退出</button>
-              <UserProfileModal open={showProfile} onClose={() => setShowProfile(false)} user={user} setUser={setUser} />
+              <button onClick={handleLogout}>退出</button>
+              <UserProfileModal
+                open={showProfile}
+                onClose={() => setShowProfile(false)}
+                user={user}
+                setUser={setUser}
+              />
             </>
           ) : (
             <>
@@ -38,7 +54,7 @@ export default function AuthLayout() {
         </div>
       </nav>
       <main className="page-content">
-        <Outlet />
+        <Outlet context={{ user, setUser }} />
       </main>
     </div>
   );

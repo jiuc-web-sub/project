@@ -31,15 +31,15 @@ export default function UserProfileModal({ open, onClose, user, setUser }) {
       <div className="modal">
         <h2>用户设置</h2>
         <div style={{ marginBottom: 12 }}>
-          <label style={{ display: 'block', marginBottom: 4 }}>昵称：</label>
+          <label style={{ display: 'block', marginBottom: 4, color: '#888' }}>用户昵称</label>
           <input value={nickname} onChange={e => setNickname(e.target.value)} />
         </div>
         <div style={{ marginBottom: 12 }}>
-          <label style={{ display: 'block', marginBottom: 4 }}>个性签名：</label>
+          <label style={{ display: 'block', marginBottom: 4, color: '#888' }}>个性签名</label>
           <input value={signature} onChange={e => setSignature(e.target.value)} />
         </div>
         <div style={{ marginBottom: 12 }}>
-          <label style={{ display: 'block', marginBottom: 4 }}>字体样式：</label>
+          <label style={{ display: 'block', marginBottom: 4, color: '#888' }}>字体选择</label>
           <select
             value={settings.fontFamily}
             onChange={e => setSettings({ ...settings, fontFamily: e.target.value })}

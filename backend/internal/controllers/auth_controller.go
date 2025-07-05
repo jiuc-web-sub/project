@@ -29,7 +29,8 @@ func (ac *AuthController) Register(c *gin.Context) {
 	var userInput struct {
 		Username string `json:"username" binding:"required"`
 		Password string `json:"password" binding:"required"`
-		Email    string `json:"email"` // 不再强制要求email
+		Nickname string `json:"nickname"` // 可选
+		Email    string `json:"email"`    // 可选
 	}
 
 	if err := c.ShouldBindJSON(&userInput); err != nil {
@@ -44,14 +45,6 @@ func (ac *AuthController) Register(c *gin.Context) {
 		return
 	}
 
-	// 检查邮箱是否已存在（如果有邮箱）
-	if userInput.Email != "" {
-		if err := ac.DB.Where("email = ?", userInput.Email).First(&existingUser).Error; err == nil {
-			c.JSON(http.StatusBadRequest, gin.H{"code": 1, "msg": "邮箱已存在"})
-			return
-		}
-	}
-
 	// 密码哈希
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(userInput.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -59,9 +52,15 @@ func (ac *AuthController) Register(c *gin.Context) {
 		return
 	}
 
+	nickname := userInput.Nickname
+	if nickname == "" {
+		nickname = userInput.Username
+	}
+
 	user := models.User{
 		Username: userInput.Username,
 		Password: string(hashedPassword),
+		Nickname: nickname,
 		Email:    userInput.Email,
 	}
 
@@ -103,14 +102,23 @@ func (ac *AuthController) Login(c *gin.Context) {
 		"userID": user.ID,
 		"exp":    time.Now().Add(time.Hour * 24).Unix(),
 	})
-
 	tokenString, err := token.SignedString([]byte(ac.JWTSecret))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "msg": "生成token失败"})
+		c.JSON(500, gin.H{"code": 1, "msg": "生成token失败"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"code": 0, "msg": "登录成功", "data": gin.H{"token": tokenString}})
+	c.JSON(200, gin.H{
+		"code": 0,
+		"msg":  "登录成功",
+		"data": gin.H{
+			"token": tokenString,
+			"user": gin.H{
+				"username": user.Username,
+				"nickname": user.Nickname,
+			},
+		},
+	})
 }
 
 // GetUserProfile 获取用户信息

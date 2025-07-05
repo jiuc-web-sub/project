@@ -7,10 +7,11 @@ import (
 )
 
 type User struct {
-	gorm.Model
-	Username  string `gorm:"size:50;not null;unique"`
-	Password  string `gorm:"size:255;not null"`
-	Email     string `gorm:"size:100;not null;unique"`
+	ID        uint   `gorm:"primaryKey"`
+	Username  string `gorm:"unique;not null"`
+	Password  string `gorm:"not null"`
+	Nickname  string `gorm:"size:100"` // 新增昵称字段
+	Email     string `gorm:"size:100"` // 不加not null
 	AvatarURL string `gorm:"size:255"`
 }
 

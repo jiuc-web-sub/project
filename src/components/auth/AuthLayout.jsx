@@ -34,7 +34,7 @@ export default function AuthLayout() {
           {user ? (
             <>
               <span style={{ marginRight: 8 }}>
-                欢迎，{user.nickname || user.username}！
+                欢迎，{user.nickname}！
               </span>
               <button onClick={() => setShowProfile(true)} style={{ marginRight: 8 }}>用户设置</button>
               <button onClick={handleLogout}>退出</button>

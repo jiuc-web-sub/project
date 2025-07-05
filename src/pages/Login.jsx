@@ -13,8 +13,7 @@ export default function Login() {
       const res = await login(username, password);
       if (res.data.code === 0) {
         localStorage.setItem('token', res.data.data.token);
-        // 假设后端返回了用户信息
-        localStorage.setItem('user', JSON.stringify({ username }));
+        localStorage.setItem('user', JSON.stringify(res.data.data.user));
         navigate('/');
       } else {
         alert(res.data.msg || '登录失败');

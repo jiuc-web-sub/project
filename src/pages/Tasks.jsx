@@ -15,16 +15,13 @@ export default function Tasks() {
   const [newTask, setNewTask] = useState('');
   const [newDueDate, setNewDueDate] = useState('');
   const [newDesc, setNewDesc] = useState('');
-  const [showDueDate, setShowDueDate] = useState(false);
+  const [expandedIds, setExpandedIds] = useState([]);
 
   useEffect(() => {
     fetchTasks().then(res => {
       if (res.data.code === 0) setTasks(res.data.data);
     });
   }, []);
-
-  // 展开/收起描述
-  const [expandedIds, setExpandedIds] = useState([]);
 
   const handleAddTask = async () => {
     if (!newTask.trim() || !newDueDate) return;
@@ -34,7 +31,6 @@ export default function Tasks() {
       setNewTask('');
       setNewDueDate('');
       setNewDesc('');
-      setShowDueDate(false);
     } else {
       alert(res.data.msg || '添加失败');
     }
@@ -84,15 +80,15 @@ export default function Tasks() {
           onChange={e => setNewTask(e.target.value)}
           placeholder="新任务名称"
         />
-        <input
-          type="date"
-          value={newDueDate}
-          onChange={e => {
-            setNewDueDate(e.target.value);
-            setShowDueDate(!!e.target.value);
-          }}
-          style={{ marginLeft: 8 }}
-        />
+        <label style={{ marginLeft: 8, color: '#888' }}>
+          截止日期
+          <input
+            type="date"
+            value={newDueDate}
+            onChange={e => setNewDueDate(e.target.value)}
+            style={{ marginLeft: 4 }}
+          />
+        </label>
         <input
           value={newDesc}
           onChange={e => setNewDesc(e.target.value)}
@@ -101,23 +97,22 @@ export default function Tasks() {
         />
         <button onClick={handleAddTask} style={{ marginLeft: 8 }}>添加任务</button>
       </div>
-      {showDueDate && newDueDate && (
-        <div style={{ margin: '8px 0', color: '#888' }}>
-          截止时间：{newDueDate}
-        </div>
-      )}
       <div className="task-list">
         {tasks.map(task => (
           <div key={task.id} className={`task-card ${getTaskColorClass(task.dueDate)}`}>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <strong>{task.title}</strong>
               <button
+                className="expand-btn"
                 style={{ marginLeft: 'auto', marginRight: 8 }}
                 onClick={() => handleToggleExpand(task.id)}
               >
                 {expandedIds.includes(task.id) ? '收起' : '展开'}
               </button>
-              <button className="delete-btn" onClick={() => handleDeleteTask(task.id)}>删除</button>
+              <button
+                className="delete-btn"
+                onClick={() => handleDeleteTask(task.id)}
+              >删除</button>
             </div>
             <div style={{ marginTop: 8 }}>
               截止时间：
